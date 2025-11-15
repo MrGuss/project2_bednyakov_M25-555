@@ -4,3 +4,5 @@ dist
 .ruff_cache
 .vscode
 .python-version
+metadata.json
+test.py
