@@ -2,8 +2,8 @@ import shlex
 
 import prompt
 
-from .core import create_table, drop_table, list_tables
-from .utils import load_metadata, save_metadata
+from .core import create_table, delete, drop_table, insert, list_tables, select, update
+from .utils import load_metadata, load_table_data, pretty_print, save_metadata, save_table_data
 
 
 def run():
@@ -17,24 +17,47 @@ def run():
         После каждой успешной операции (create_table, drop_table) сохраняйте измененные метаданные
         с помощью save_metadata.
         """
-        data = load_metadata('metadata.json')
+        metadata = load_metadata('metadata.json')
         cmd = prompt.string('>>>Введите команду: ')
         args = shlex.split(cmd)
+        # TODO: Make input parsing more flexible and robust
         try:
             if args[0] == 'exit':
                 break
             elif args[0] == 'help':
                 print_help()
             elif args[0] == 'create_table':
-                data = create_table(data, args[1], args[2:])
+                metadata = create_table(metadata, args[1], args[2:])
                 print(f"Table {args[1]} created")
-                save_metadata('metadata.json', data)
+                save_metadata('metadata.json', metadata)
             elif args[0] == 'list_tables':
-                print(list_tables(data))
+                print(list_tables(metadata))
             elif args[0] == 'drop_table':
-                data = drop_table(data, args[1])
+                metadata = drop_table(metadata, args[1])
                 print(f"Table {args[1]} deleted")
-                save_metadata('metadata.json', data)
+                save_metadata('metadata.json', metadata)
+            elif args[0] == 'insert' and args[1] == 'into':
+                data = insert(metadata, args[2], args[3:])
+            elif args[0] == 'select' and args[1] == 'from':
+                data = load_table_data(args[2])
+                where_clause = None
+                if len(args) == 5:
+                    where_clause = args[4].split('=')
+                    where_clause = {where_clause[0]: where_clause[1]}
+                selected = select(data, where_clause)
+                pretty_print(selected, metadata[args[2]])
+            elif args[0] == 'update':
+                data = load_table_data(args[1])
+                where_clause = args[5].split('=')
+                where_clause = {where_clause[0]: where_clause[1]}
+                updated_data = update(data, args[3].split('='), where_clause)
+                save_table_data(args[1], updated_data)
+            elif args[0] == 'delete':
+                data = load_table_data(args[2])
+                where_clause = args[4].split('=')
+                where_clause = {where_clause[0]: where_clause[1]}
+                updated_data = delete(data, where_clause)
+                save_table_data(args[2], updated_data)
             else:
                 print(f"Функции {args[0]} нет. Попробуйте снова.")
         except ValueError as e:
@@ -50,6 +73,11 @@ def print_help():
     print("<command> create_table <имя_таблицы> <столбец1:тип> .. - создать таблицу")
     print("<command> list_tables - показать список всех таблиц")
     print("<command> drop_table <имя_таблицы> - удалить таблицу")
+    print("<command> insert into <имя_таблицы> <столбец1> <значение1> .. - добавить запись в таблицу")
+    print("<command> select from <имя_таблицы> - выбрать все записи из таблицы")
+    print("<command> select from <имя_таблицы> where <столбец> = <значение> - выбрать записи из таблицы")
+    print("<command> update <имя_таблицы> set <столбец> = <значение> where <столбец> = <значение> - обновить запись")
+    print("<command> delete from <имя_таблицы> where <столбец> = <значение> - удалить запись")
 
     print("\nОбщие команды:")
     print("<command> exit - выход из программы")
