@@ -2,6 +2,8 @@ import json
 
 import prettytable
 
+META_FILE = "metadata.json"
+
 
 def load_metadata(filepath):
     try:
@@ -17,11 +19,8 @@ def save_metadata(filepath, data):
 
 
 def load_table_data(table_name):
-    try:
-        with open(f'data/{table_name}.json') as f:
-            return json.loads(f.read())
-    except FileNotFoundError:
-        return {}
+    with open(f'data/{table_name}.json') as f:
+        return json.loads(f.read())
 
 
 def save_table_data(table_name, data):

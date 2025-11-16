@@ -1,4 +1,7 @@
-from .utils import load_table_data, save_table_data
+import os
+
+from ..decorators import confirm_action, log_time
+from .utils import META_FILE, load_table_data, save_metadata, save_table_data
 
 
 def create_table(metadata, table_name, columns):
@@ -42,18 +45,15 @@ def create_table(metadata, table_name, columns):
             }
             order += 1
     metadata[table_name] = columns_ordered
+    save_table_data(table_name, {})
     return metadata
 
 
-def drop_table(metadata, table_name):
-    """
-    Проверяет существование таблицы. Если таблицы нет, выводит ошибку.
-    Удаляет информацию о таблице из metadata и возвращает обновленный словарь.
-    """
-    if table_name not in metadata:
-        raise ValueError('Table does not exist')
-    del metadata[table_name]
-    return metadata
+@confirm_action
+def drop_table(table_name, metadata):
+    os.remove(f'data/{table_name}.json')
+    metadata.pop(table_name)
+    save_metadata(META_FILE, metadata)
 
 
 def list_tables(metadata):
@@ -62,6 +62,7 @@ def list_tables(metadata):
     return '\n'.join(list(metadata.keys()))
 
 
+@log_time
 def insert(metadata, table_name, values):
     """
     Проверяет, существует ли таблица.
@@ -70,8 +71,6 @@ def insert(metadata, table_name, values):
     Генерирует новый ID (например, max(IDs) + 1 или len(data) + 1).
     Добавляет новую запись (в виде словаря) в данные таблицы и возвращает их.
     """
-    if table_name not in metadata:
-        raise ValueError('Table does not exist')
     if len(values) != len(metadata[table_name]) - 1:
         raise ValueError('Invalid number of values')
     for i in range(len(values)):
@@ -93,10 +92,10 @@ def insert(metadata, table_name, values):
 
     new_id = max([int(i) for i in data.keys()], default=0) + 1
     data[new_id] = {metadata[table_name][str(i + 1)]['name']: str(values[i]) for i in range(len(values))}
-    save_table_data(table_name, data)
     return data
 
 
+@log_time
 def select(table_data, where_clause=None):
     """
     Если where_clause не задан, возвращает все данные.
@@ -118,15 +117,12 @@ def update(table_data, set_clause, where_clause):
     for_update = select(table_data, where_clause)
     for k in for_update:
         table_data[k][set_clause[0]] = set_clause[1]
-    """
-    for k, v in table_data.items():
-        if all(v[i] == where_clause[i] for i in where_clause):
-            v[set_clause[0]] = set_clause[1]
-            table_data[k] = v"""
+
     return table_data
 
 
-def delete(table_data, where_clause):
+@confirm_action
+def delete(table_name, table_data, where_clause):
     """
     Находит записи по where_clause и удаляет их.
     Возвращает измененные данные.
@@ -135,4 +131,4 @@ def delete(table_data, where_clause):
 
     for k in for_delete:
         del table_data[k]
-    return table_data
+    save_table_data(table_name, table_data)
