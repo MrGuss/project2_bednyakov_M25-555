@@ -35,7 +35,6 @@ def pretty_print(data, table_metadata):
     for column in range(len(table_metadata)):
         names.append(table_metadata[str(column)]['name'])
     table.field_names = names
-    print(data)
     names.remove('id')
     for row in data:
         table.add_row([row, *[data[row][name] for name in names]])

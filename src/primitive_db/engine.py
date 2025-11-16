@@ -20,7 +20,7 @@ def run():
         metadata = load_metadata('metadata.json')
         cmd = prompt.string('>>>Введите команду: ')
         args = shlex.split(cmd)
-        # TODO: Make input parsing more flexible and robust
+
         try:
             if args[0] == 'exit':
                 break
@@ -40,22 +40,62 @@ def run():
                 data = insert(metadata, args[2], args[3:])
             elif args[0] == 'select' and args[1] == 'from':
                 data = load_table_data(args[2])
-                where_clause = None
-                if len(args) == 5:
-                    where_clause = args[4].split('=')
-                    where_clause = {where_clause[0]: where_clause[1]}
-                selected = select(data, where_clause)
+                if "where" in args:
+                    w_index = args.index("where")
+                    where_tokens = args[w_index+1:]
+                    if len(where_tokens) == 3 and where_tokens[1] == "=":
+                        where_clause = {where_tokens[0].lower(): where_tokens[2]}
+                    elif len(where_tokens) == 1:
+                        where_clause = where_tokens[0].split('=')
+                        where_clause = {where_clause[0].lower(): where_clause[1]}
+                    else:
+                        raise ValueError("Invalid SELECT command")
+                    selected = select(data, where_clause)
+                else:
+                    selected = select(data, None)
                 pretty_print(selected, metadata[args[2]])
             elif args[0] == 'update':
                 data = load_table_data(args[1])
-                where_clause = args[5].split('=')
-                where_clause = {where_clause[0]: where_clause[1]}
-                updated_data = update(data, args[3].split('='), where_clause)
+                if "where" in args and "set" in args:
+                    w_index = args.index("where")
+                    s_index = args.index("set")
+
+                    set_tokens = args[s_index+1:w_index]
+                    where_tokens = args[w_index+1:]
+
+                    if len(where_tokens) == 3 and where_tokens[1] == "=":
+                        where_clause = {where_tokens[0].lower(): where_tokens[2]}
+                    elif len(where_tokens) == 1:
+                        where_clause = where_tokens[0].split('=')
+                        where_clause = {where_clause[0].lower(): where_clause[1]}
+                    else:
+                        raise ValueError("Invalid UPDATE command")
+
+                    if len(set_tokens) == 3 and set_tokens[1] == "=":
+                        set_clause = [set_tokens[0].lower(), set_tokens[2]]
+                    elif len(set_tokens) == 1:
+                        set_clause = set_tokens[0].split('=')
+                    else:
+                        raise ValueError("Invalid UPDATE command")
+                else:
+                    raise ValueError("Invalid UPDATE command")
+                updated_data = update(data, set_clause, where_clause)
                 save_table_data(args[1], updated_data)
             elif args[0] == 'delete':
                 data = load_table_data(args[2])
-                where_clause = args[4].split('=')
-                where_clause = {where_clause[0]: where_clause[1]}
+                if "where" in args:
+                    w_index = args.index("where")
+                    where_tokens = args[w_index+1:]
+                    if len(where_tokens) == 3 and where_tokens[1] == "=":
+                        where_clause = {where_tokens[0].lower(): where_tokens[2]}
+                    elif len(where_tokens) == 1:
+                        where_clause = where_tokens[0].split('=')
+                        where_clause = {where_clause[0].lower(): where_clause[1]}
+                    else:
+                        raise ValueError("Invalid DELETE command")
+                else:
+                    raise ValueError("Invalid DELETE command")
+
                 updated_data = delete(data, where_clause)
                 save_table_data(args[2], updated_data)
             else:

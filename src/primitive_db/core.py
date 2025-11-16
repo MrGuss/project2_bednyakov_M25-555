@@ -104,7 +104,8 @@ def select(table_data, where_clause=None):
     """
     if where_clause is None:
         return table_data
-    print(where_clause)
+    if list(where_clause.keys())[0] == 'id':
+        return {where_clause['id']: table_data[where_clause['id']]}
     return {k: v for k, v in table_data.items() if all(v[i] == where_clause[i] for i in where_clause)}
 
 
