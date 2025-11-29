@@ -4,6 +4,9 @@ import prompt
 
 
 def handle_db_errors(func):
+    """
+    Decorator to handle database errors.
+    """
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -17,6 +20,9 @@ def handle_db_errors(func):
 
 
 def confirm_action(func):
+    """
+    Decorator to confirm action in delete/drop cases.
+    """
     def wrapper(*args, **kwargs):
         confirm = prompt.string("Вы уверены, что хотите продолжить? (y/n): ")
         if confirm.lower() == 'y':
@@ -27,6 +33,9 @@ def confirm_action(func):
 
 
 def log_time(func):
+    """
+    Decorator to log function execution time.
+    """
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)

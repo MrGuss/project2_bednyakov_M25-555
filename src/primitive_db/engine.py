@@ -7,16 +7,10 @@ from .core import create_table, delete, drop_table, insert, list_tables, select,
 from .utils import META_FILE, load_metadata, load_table_data, pretty_print, save_metadata, save_table_data
 
 
-def run():
+def run() -> None:
     while True:
         """
-        Загружайте актуальные метаданные с помощью load_metadata.
-        Запрашивайте ввод у пользователя.
-        Разбирайте введенную строку на команду и аргументы.
-        Подсказка: Для надежного разбора строки используйте библиотеку shlex. args = shlex.split(user_input).
-        Используйте if/elif/else или match/case для вызова соответствующей функции из core.py.
-        После каждой успешной операции (create_table, drop_table) сохраняйте измененные метаданные
-        с помощью save_metadata.
+        Run the database engine.
         """
         metadata = load_metadata(META_FILE)
         cmd = prompt.string('>>>Введите команду: ')
@@ -25,8 +19,10 @@ def run():
             break
 
 
-def print_help():
-    """Prints the help message for the current mode."""
+def print_help() -> None:
+    """
+    Prints the help message.
+    """
 
     print("\n***Процесс работы с таблицей***")
     print("Функции:")
@@ -45,7 +41,15 @@ def print_help():
 
 
 @handle_db_errors
-def parse_command(args, metadata):
+def parse_command(args: list, metadata: dict) -> int:
+    """
+    Parses the command.
+
+    :param args (list): list of arguments
+    :param metadata (dict): current metadata
+
+    :return int: exit code
+    """
     if args[0] == 'exit':
         return 1
     elif args[0] == 'help':
