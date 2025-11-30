@@ -1,4 +1,24 @@
-Управление таблицами
+# dummydb
+
+dummydb - простой база данных для учебных целей
+
+## Установка
+
+Требования:
+- Python 3.8+
+- Poetry
+
+```bash
+make install
+```
+
+## Запуск
+
+```bash
+make project
+```
+
+## Управление таблицами
 
 ```
 Функции:
@@ -15,3 +35,7 @@
 <command> exit - выход из программы
 <command> help - справочная информация
 ```
+
+## Демо
+
+[![asciicast](https://asciinema.org/a/759108.svg)](https://asciinema.org/a/759108)
